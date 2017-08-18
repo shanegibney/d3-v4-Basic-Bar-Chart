@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<body>
+  <div id="bar_chart">
+  </div>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script>
+    d3.json("data.json", function(error, data) {
+      if (error) throw error;
+
+      // var parseTime = d3.timeParse("%M:%S");
+      // var timeformat = d3.timeFormat("%M:%S")
+
+      data.forEach(function(d) {
+        // d.atime = parseTime(d.atime);
+        d.value = +d.value;
+      });
+
+      var margin = {
+          top: 70,
+          right: 50,
+          bottom: 100,
+          left: 80
+        },
+        width = 800 - margin.left - margin.right,
+        height = 600 - margin.top - margin.bottom;
+
+      var x = d3.scaleBand()
+        .domain(data.map(function(d) {
+          return d.name
+        }))
+        .range([0, width]);
+
+      var y = d3.scaleLinear()
+        .domain([0, d3.max(data, function(d) {
+          return d.value
+        })])
+        .range([height, 0]);
+
+      var svg = d3.select("#bar_chart")
+        .data(data)
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      // Add the X Axis
+      svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x));
+
+      // text label for the x axis
+      svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", margin.top + height)
+        .style("text-anchor", "middle")
+        .style("font-weight", "bold")
+        .text("x-Axis Title");
+
+      // Add the Y Axis
+      svg.append("g")
+        .attr("class", "axis")
+        .call(d3.axisLeft(y)
+          .ticks(5));
+
+      // text label for the y axis
+      svg.append("text")
+        .attr("class", "blah")
+        .attr("transform", "rotate(-90)")
+        .attr("x", 0 - height / 2)
+        .attr("y", -30)
+        .style("text-anchor", "middle")
+        .style("font-weight", "bold")
+        .text("y-Axis Title");
+
+      // graph main title
+      svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", 0)
+        .style("text-anchor", "middle")
+        .style("font-weight", "bold")
+        .style("font-size", "20px")
+        .text("Main Title");
+
+      // var tooltip = d3.select("#info")
+      //   .append("div")
+      //   .style("position", "absolute")
+      //   .style("z-index", "10")
+      //   .style("visibility", "hidden");
+
+      var rects = svg.selectAll('rect')
+        .data(data)
+        .enter();
+
+      //********* Bar Chart ****************
+
+      rects.append('rect')
+        .attr('x', function(d, i) {
+          return x(d.name);
+        })
+        .attr('y', function(d, i) {
+          return y(d.value);
+        })
+        .attr('height', function(d, i) {
+          return height - y(d.value)
+        })
+        .attr('width', 40)
+        .attr("transform", "translate(45,0)")
+        .style('fill', 'lightblue')
+        .style('stroke', 'lightgray');
+
+    }); //closes function d3.json("data.json", function(error, data) {.....
+  </script>
