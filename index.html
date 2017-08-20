@@ -2,6 +2,29 @@
 <meta charset="utf-8">
 
 <body>
+  <style>
+    .bars:hover {
+      fill: blue;
+    }
+
+    .legend:hover {
+      fill: blue;
+    }
+    /* tooltip for bar chart */
+
+    div.tooltip {
+      position: absolute;
+      text-align: center;
+      width: 50px;
+      height: 30px;
+      padding: 2px;
+      font: 12px sans-serif;
+      background: lightsteelblue;
+      border: 0px;
+      border-radius: 8px;
+      pointer-events: none;
+    }
+  </style>
   <div id="bar_chart">
   </div>
   <script src="https://d3js.org/d3.v4.min.js"></script>
@@ -23,14 +46,20 @@
           bottom: 100,
           left: 80
         },
-        width = 800 - margin.left - margin.right,
+        width = 600 - margin.left - margin.right,
         height = 600 - margin.top - margin.bottom;
+
+      //Define the div for the tooltip
+      var div = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
 
       var x = d3.scaleBand()
         .domain(data.map(function(d) {
           return d.name
         }))
-        .range([0, width]);
+        .range([0, width])
+        .padding([0.5]); //sets decimal of the space between bar centres
 
       var y = d3.scaleLinear()
         .domain([0, d3.max(data, function(d) {
@@ -85,19 +114,31 @@
         .style("font-size", "20px")
         .text("Main Title");
 
-      // var tooltip = d3.select("#info")
-      //   .append("div")
-      //   .style("position", "absolute")
-      //   .style("z-index", "10")
-      //   .style("visibility", "hidden");
+      //********* Bar Chart ****************
 
       var rects = svg.selectAll('rect')
         .data(data)
         .enter();
 
-      //********* Bar Chart ****************
-
       rects.append('rect')
+        .on("mouseover", function(d, i, node) { //this is repeated should be in a function
+          div.transition()
+            .duration(200)
+            .style("opacity", .85);
+          div.html("<strong> Letter:</strong> " + d.name + "</br><strong> Value:</strong> " + d.value)
+            .style("left", (d3.event.pageX + 5) + "px")
+            .style("top", (d3.event.pageY - 28) + "px");
+          d3.select(this)
+            .style("fill", "blue");
+        })
+        .on("mouseout", function(d) {
+          div.transition()
+            .duration(500)
+            .style("opacity", 0);
+          d3.select(this)
+            .style("fill", "lightblue");
+        })
+        .attr("class", "bars") //should fill blue on mouseover, not working???
         .attr('x', function(d, i) {
           return x(d.name);
         })
@@ -107,10 +148,9 @@
         .attr('height', function(d, i) {
           return height - y(d.value)
         })
-        .attr('width', 40)
-        .attr("transform", "translate(45,0)")
+        .attr('width', x.bandwidth())
+        .attr("transform", "translate(0,0)")
         .style('fill', 'lightblue')
         .style('stroke', 'lightgray');
-
     }); //closes function d3.json("data.json", function(error, data) {.....
   </script>
